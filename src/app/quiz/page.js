@@ -58,7 +58,7 @@ export default function Quiz() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentQuestionIndex, gameOver]);
+  }, [currentQuestionIndex, gameOver, handleAnswer, questions.length]);
 
   async function handleAnswer(selectedOption) {
     const currentQuestion = questions[currentQuestionIndex];
