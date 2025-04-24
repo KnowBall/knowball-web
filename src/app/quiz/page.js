@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
@@ -60,7 +60,7 @@ export default function Quiz() {
     return () => clearInterval(timer);
   }, [currentQuestionIndex, gameOver, handleAnswer, questions.length]);
 
-  async function handleAnswer(selectedOption) {
+  const handleAnswer = useCallback(async (selectedOption) => {
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = selectedOption === currentQuestion.correctAnswer;
 
@@ -88,7 +88,7 @@ export default function Quiz() {
       setCurrentQuestionIndex(prev => prev + 1);
       setTimeLeft(15);
     }
-  }
+  }, [currentQuestionIndex, questions, currentUser, score, router]);
 
   if (loading) {
     return (
