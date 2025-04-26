@@ -3,37 +3,29 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import useRequireAuth from '@/lib/useRequireAuth';
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const authLoading = useRequireAuth();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const checkUser = async () => {
+    const fetchUser = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        
         if (error) throw error;
-        
-        if (!user) {
-          router.push('/login');
-          return;
-        }
-        
         setUser(user);
       } catch (err) {
-        console.error('Error checking auth status:', err);
-        router.push('/login');
+        console.error('Error fetching user:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
-  }, [router]);
+    fetchUser();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -45,8 +37,12 @@ export default function Home() {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (loading || authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -63,18 +59,18 @@ export default function Home() {
         </div>
         
         <div className="space-y-4">
-          <Link
-            href="/quiz"
+          <button
+            onClick={() => router.push('/quiz')}
             className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition duration-200"
           >
-            Start Game
-          </Link>
-          <Link
-            href="/leaderboard"
+            Start Quiz
+          </button>
+          <button
+            onClick={() => router.push('/leaderboard')}
             className="block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg hover:bg-gray-300 transition duration-200"
           >
             View Leaderboard
-          </Link>
+          </button>
         </div>
       </div>
     </div>
