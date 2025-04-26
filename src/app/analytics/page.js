@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
+import useRequireAuth from '../../lib/useRequireAuth';
 import { supabase } from '@/lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Button from '@/components/ui/Button';
