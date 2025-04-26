@@ -18,29 +18,21 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      console.log('Login attempt with:', { email, password });
       
-      const { data, error } = await supabase.auth.signInWithPassword({ 
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
       
-      console.log('Login response:', { data, error });
-      
       if (error) {
-        console.error('Login error:', error);
         setError(error.message);
         return;
       }
       
-      if (data?.user) {
-        console.log('Login successful, redirecting to /home');
+      if (user) {
         router.push('/home');
-      } else {
-        setError('No user data returned');
       }
     } catch (err) {
-      console.error('Unexpected error during login:', err);
       setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
