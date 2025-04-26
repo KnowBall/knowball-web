@@ -8,6 +8,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: { DEFAULT: '#3b82f6', dark: '#2563eb' },
+        secondary: { DEFAULT: '#e5e7eb', dark: '#374151' },
+        accent: { DEFAULT: '#f59e0b', dark: '#d97706' },
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+      },
+      spacing: {
+        18: '4.5rem',
+        22: '5.5rem',
+        26: '6.5rem',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':

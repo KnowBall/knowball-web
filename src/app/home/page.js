@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import useRequireAuth from '@/lib/useRequireAuth';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -47,32 +49,41 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+      <Card className="max-w-md w-full">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Welcome, {user?.email}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Welcome, {user?.email}</h1>
           <button
             onClick={handleSignOut}
-            className="text-sm text-gray-600 hover:text-gray-800"
+            className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
           >
             Sign Out
           </button>
         </div>
         
         <div className="space-y-4">
-          <button
+          <Button
+            variant="primary"
             onClick={() => router.push('/quiz')}
-            className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition duration-200"
+            className="w-full"
           >
             Start Quiz
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => router.push('/leaderboard')}
-            className="block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg hover:bg-gray-300 transition duration-200"
+            className="w-full"
           >
             View Leaderboard
-          </button>
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => router.push('/analytics')}
+            className="w-full"
+          >
+            View Analytics
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 } 

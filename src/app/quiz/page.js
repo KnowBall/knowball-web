@@ -3,14 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import useRequireAuth from '@/lib/useRequireAuth';
 
 export default function Quiz() {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
+  const [showScore, setShowScore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
+  const authLoading = useRequireAuth();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -95,11 +98,33 @@ export default function Quiz() {
         console.error('Error saving score:', err);
       }
 
-      router.push('/results');
+      setShowScore(true);
     }
   };
 
-  if (loading) {
+  const handleSubmitScore = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('scores')
+        .insert([
+          { 
+            user_id: user.id,
+            score: score,
+            total_questions: questions.length
+          }
+        ]);
+      
+      if (error) throw error;
+      
+      router.push('/results');
+    } catch (err) {
+      console.error('Error submitting score:', err);
+    }
+  };
+
+  if (loading || authLoading) {
     return <div>Loading...</div>;
   }
 
@@ -107,23 +132,49 @@ export default function Quiz() {
     return <div>{error}</div>;
   }
 
-  if (questions.length === 0) {
-    return <div>No questions available</div>;
+  if (showScore) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Quiz Completed!</h2>
+          <p className="text-lg text-gray-600 mb-6">
+            You scored {score} out of {questions.length}
+          </p>
+          <button
+            onClick={handleSubmitScore}
+            className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition duration-200"
+          >
+            View Results
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h2>Question {currentQuestion + 1} of {questions.length}</h2>
-      <p>{questions[currentQuestion].question}</p>
-      <div>
-        {questions[currentQuestion].options.map((option, index) => (
-          <button
-            key={index}
-            onClick={() => handleAnswer(option)}
-          >
-            {option}
-          </button>
-        ))}
+    <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex flex-col items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <div className="mb-6">
+          <span className="text-sm text-gray-600">
+            Question {currentQuestion + 1}/{questions.length}
+          </span>
+        </div>
+        
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          {questions[currentQuestion]?.question}
+        </h2>
+        
+        <div className="space-y-4">
+          {questions[currentQuestion]?.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleAnswer(option)}
+              className="block w-full bg-gray-100 text-gray-800 text-center py-3 rounded-lg hover:bg-gray-200 transition duration-200"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
