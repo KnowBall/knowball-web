@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { supabase } from '@/lib/supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,24 +18,21 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      await signInWithEmailAndPassword(auth, email, password);
+      const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) throw error;
+      
       router.push('/home');
     } catch (err) {
       let errorMessage = 'Failed to log in';
       
-      // Handle specific Firebase error messages
-      switch (err.code) {
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address';
+      // Handle specific Supabase error messages
+      switch (err.message) {
+        case 'Invalid login credentials':
+          errorMessage = 'Invalid email or password';
           break;
-        case 'auth/user-disabled':
-          errorMessage = 'This account has been disabled';
-          break;
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password';
+        case 'Email not confirmed':
+          errorMessage = 'Please confirm your email address';
           break;
         default:
           console.error('Login error:', err);

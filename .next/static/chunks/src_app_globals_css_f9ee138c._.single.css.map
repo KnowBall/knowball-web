@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/src/app/globals.css"],"sourcesContent":["/* src/app/globals.css */\nhtml, body {\n  margin: 0;\n  padding: 0;\n  font-family: system-ui, sans-serif;\n}\na {\n  color: inherit;\n  text-decoration: none;\n}\n*, *::before, *::after {\n  box-sizing: border-box;\n} "],"names":[],"mappings":"AACA;;;;;;AAKA;;;;;AAIA"}}]
+}

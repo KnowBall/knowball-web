@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { supabase } from '@/lib/supabase';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -19,24 +18,24 @@ export default function SignUp() {
     try {
       setError('');
       setLoading(true);
-      await createUserWithEmailAndPassword(auth, email, password);
+      const { user, error } = await supabase.auth.signUp({ email, password });
+      
+      if (error) throw error;
+      
       router.push('/home');
     } catch (err) {
       let errorMessage = 'Failed to create an account';
       
-      // Handle specific Firebase error messages
-      switch (err.code) {
-        case 'auth/email-already-in-use':
+      // Handle specific Supabase error messages
+      switch (err.message) {
+        case 'User already registered':
           errorMessage = 'Email is already in use';
           break;
-        case 'auth/invalid-email':
+        case 'Invalid email':
           errorMessage = 'Invalid email address';
           break;
-        case 'auth/weak-password':
+        case 'Password should be at least 6 characters':
           errorMessage = 'Password should be at least 6 characters';
-          break;
-        case 'auth/operation-not-allowed':
-          errorMessage = 'Email/password accounts are not enabled';
           break;
         default:
           console.error('Signup error:', err);

@@ -2,88 +2,81 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function Leaderboard() {
   const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+  const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    if (!currentUser) {
-      router.push('/');
-      return;
-    }
-
-    async function fetchScores() {
+    const checkAuth = async () => {
       try {
-        const scoresQuery = query(
-          collection(db, 'scores'),
-          orderBy('score', 'desc'),
-          limit(5)
-        );
-        const scoresSnapshot = await getDocs(scoresQuery);
-        const scoresData = scoresSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setScores(scoresData);
-      } catch (error) {
-        console.error('Error fetching scores:', error);
-      } finally {
-        setLoading(false);
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          router.push('/login');
+          return;
+        }
+        fetchScores();
+      } catch (err) {
+        console.error('Auth check error:', err);
+        router.push('/login');
       }
-    }
+    };
 
-    fetchScores();
-  }, [currentUser, router]);
+    checkAuth();
+  }, [router]);
+
+  const fetchScores = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('scores')
+        .select(`
+          score,
+          total_questions,
+          created_at,
+          profiles (
+            email
+          )
+        `)
+        .order('score', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      setScores(data);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching scores:', err);
+      setError('Failed to load leaderboard');
+      setLoading(false);
+    }
+  };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex items-center justify-center">
-        <div className="text-white text-xl">Loading leaderboard...</div>
-      </div>
-    );
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-2xl font-bold text-center mb-6">Top Players</h2>
-        
-        <div className="space-y-4 mb-6">
-          {scores.map((score, index) => (
-            <div
-              key={score.id}
-              className="flex justify-between items-center p-3 bg-gray-50 rounded-md"
-            >
-              <div className="flex items-center">
-                <span className="text-gray-500 mr-2">{index + 1}.</span>
-                <span className="font-medium">{score.email}</span>
-              </div>
-              <span className="font-bold">{score.score} points</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          <Link
-            href="/home"
-            className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition duration-200"
-          >
-            Go Home
-          </Link>
-          <Link
-            href="/quiz"
-            className="block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg hover:bg-gray-300 transition duration-200"
-          >
-            Play Game
-          </Link>
-        </div>
+    <div>
+      <h1>Leaderboard</h1>
+      <div>
+        {scores.map((score, index) => (
+          <div key={index}>
+            <span>{index + 1}. {score.profiles.email}</span>
+            <span>Score: {score.score}/{score.total_questions}</span>
+            <span>Percentage: {((score.score / score.total_questions) * 100).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+      <div>
+        <Link href="/home">Back to Home</Link>
       </div>
     </div>
   );

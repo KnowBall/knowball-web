@@ -5,8 +5,8 @@ import { AuthProvider } from '@/context/AuthContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'KnowBall - Quiz Game',
-  description: 'Test your knowledge and compete with others in this exciting quiz game!',
+  title: 'Knowball',
+  description: 'Test your knowledge with Knowball',
 };
 
 export default function RootLayout({ children }) {
