@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Input, Button, Card } from '@/components/ui';
+import { Input, Button, Card } from '../../components/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
