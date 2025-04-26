@@ -2,101 +2,94 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { Menu, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { Moon, Sun, Menu, X } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
-export default function Navigation() {
+function NavLink({ href, children }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      router.push('/login');
-    } catch (err) {
-      console.error('Error signing out:', err);
-    }
-  };
-
-  const isActive = (path) => pathname === path;
-
-  const NavLink = ({ href, children }) => (
+  const isActive = pathname === href;
+  
+  return (
     <Link
       href={href}
-      className={`inline-flex items-center px-1 pt-1 border-b-2 ${
-        isActive(href) ? 'border-blue-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white'
+      className={`px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        isActive ? 'text-primary dark:text-primary-dark font-medium' : 'text-gray-700 dark:text-gray-300'
       }`}
-      onClick={() => setIsOpen(false)}
     >
       {children}
     </Link>
   );
+}
 
-  const ThemeToggle = () => (
+export default function Navigation() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { user, isAdmin } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  const themeToggleButton = (
     <button
-      aria-label="Toggle dark mode"
-      className="ml-4 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      {theme === 'dark' ? '🌞' : '🌙'}
+      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
+  );
+
+  const signOutButton = user && (
+    <button
+      onClick={handleSignOut}
+      className="px-3 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+    >
+      Sign Out
     </button>
   );
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
-            <NavLink href="/home">Home</NavLink>
-            <NavLink href="/quiz">Quiz</NavLink>
-            <NavLink href="/leaderboard">Leaderboard</NavLink>
-            <NavLink href="/analytics">Analytics</NavLink>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="block md:hidden p-2 text-gray-500 dark:text-gray-300"
-            aria-label="Toggle menu"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-
-          {/* Right Side Buttons */}
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-            <button
-              onClick={handleSignOut}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
-            >
-              Sign Out
-            </button>
-          </div>
+    <nav className="flex items-center justify-between">
+      <div className="flex items-center space-x-6">
+        {/* Desktop links */}
+        <div className="hidden md:flex space-x-6">
+          <NavLink href="/home">Home</NavLink>
+          <NavLink href="/game">Quiz</NavLink>
+          <NavLink href="/results">Leaderboard</NavLink>
+          <NavLink href="/analytics">Analytics</NavLink>
+          {isAdmin && <NavLink href="/admin">Admin</NavLink>}
         </div>
       </div>
-
-      {/* Mobile Menu Panel */}
-      <div
-        id="mobile-menu"
-        className={`fixed inset-0 bg-white dark:bg-gray-800 bg-opacity-95 dark:bg-opacity-95 flex flex-col items-center justify-center space-y-4 transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        aria-hidden={!isOpen}
-      >
-        <NavLink href="/home">Home</NavLink>
-        <NavLink href="/quiz">Quiz</NavLink>
-        <NavLink href="/leaderboard">Leaderboard</NavLink>
-        <NavLink href="/analytics">Analytics</NavLink>
-        <ThemeToggle />
+      <div className="flex items-center space-x-4">
+        {/* Theme toggle & sign-out */}
+        {themeToggleButton}
+        {signOutButton}
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="absolute top-16 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg md:hidden">
+          <div className="flex flex-col space-y-2 p-4">
+            <NavLink href="/home">Home</NavLink>
+            <NavLink href="/game">Quiz</NavLink>
+            <NavLink href="/results">Leaderboard</NavLink>
+            <NavLink href="/analytics">Analytics</NavLink>
+            {isAdmin && <NavLink href="/admin">Admin</NavLink>}
+          </div>
+        </div>
+      )}
     </nav>
   );
 } 
