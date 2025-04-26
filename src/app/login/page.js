@@ -18,27 +18,30 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
-      const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('Login attempt with:', { email, password });
       
-      if (error) throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
-      router.push('/home');
-    } catch (err) {
-      let errorMessage = 'Failed to log in';
+      console.log('Login response:', { data, error });
       
-      // Handle specific Supabase error messages
-      switch (err.message) {
-        case 'Invalid login credentials':
-          errorMessage = 'Invalid email or password';
-          break;
-        case 'Email not confirmed':
-          errorMessage = 'Please confirm your email address';
-          break;
-        default:
-          console.error('Login error:', err);
+      if (error) {
+        console.error('Login error:', error);
+        setError(error.message);
+        return;
       }
       
-      setError(errorMessage);
+      if (data?.user) {
+        console.log('Login successful, redirecting to /home');
+        router.push('/home');
+      } else {
+        setError('No user data returned');
+      }
+    } catch (err) {
+      console.error('Unexpected error during login:', err);
+      setError(err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -86,7 +89,7 @@ export default function Login() {
         </form>
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
+            Don't have an account?{' '}
             <Link href="/signup" className="text-blue-600 hover:text-blue-800">
               Sign Up
             </Link>
