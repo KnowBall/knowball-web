@@ -9,10 +9,11 @@ export default function NotFound() {
       <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
         Sorry, we couldn&apos;t find that page.
       </p>
-      <Link href="/">
-        <a className="mt-6 px-5 py-2 bg-primary text-white rounded hover:bg-primary-dark">
-          Go Back Home
-        </a>
+      <Link 
+        href="/"
+        className="mt-6 px-5 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+      >
+        Go Back Home
       </Link>
     </div>
   );
